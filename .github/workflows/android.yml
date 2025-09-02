@@ -1,0 +1,48 @@
+﻿name: Build Android APK
+on:
+  workflow_dispatch: {}
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install deps
+        run: |
+          npm ci || npm i
+          npm i @capacitor/android@latest
+
+      - name: Ensure Android platform & sync
+        run: |
+          if [ ! -d android ]; then npx cap add android; fi
+          npx cap sync android
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Point SDK to project
+        run: echo "sdk.dir=" > android/local.properties
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build Debug & Release
+        run: |
+          cd android
+          ./gradlew assembleDebug
+          ./gradlew assembleRelease || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apks
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/apk/release/*.apk
