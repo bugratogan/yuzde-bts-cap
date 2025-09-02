@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yüzde & KDV Hesaplama – Ultra Modern</title>
+  <style>
+    :root{
+      --bg:#0b1220;--text:#e6edf7;--muted:#9fb0c7;--focus:#7dd3fc;--ring:#1e385f;
+      --glass:#0f1a33cc;--glass-border:#24406e;--chip:#132542;--chip-border:#2a4a78;--chip-active:#79e6ff;--chip-active-text:#072033;
+      --pill:#11203e;--pill-border:#274571;--pill-strong:#17305d;
+    }
+    :root[data-theme="light"]{
+      --bg:#f5f7fb;--text:#0b1220;--muted:#5b6a7f;--focus:#0ea5e9;--ring:#cbd5e1;
+      --glass:#ffffffcc;--glass-border:#e2e8f0;--chip:#eef2f9;--chip-border:#d7deea;--chip-active:#0ea5e9;--chip-active-text:#ffffff;
+      --pill:#f0f4fa;--pill-border:#d8e1ee;--pill-strong:#e9f1ff;
+    }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.52 Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    .decor{pointer-events:none;position:fixed;inset:0;z-index:-1;background:
+      radial-gradient(900px 600px at 85% -10%, #2aa5ff22, transparent 60%),
+      radial-gradient(800px 500px at -10% 110%, #37ffc622, transparent 60%);
+    }
+    .wrap{max-width:1180px;margin:42px auto;padding:0 22px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    h1{font-size:28px;margin:0;font-weight:800;letter-spacing:.2px}
+
+    .switch{position:relative;width:50px;height:28px;background:#0f1a33;border:1px solid var(--ring);border-radius:999px;display:inline-block;vertical-align:middle;cursor:pointer}
+    :root[data-theme="light"] .switch{background:#ffffff}
+    .switch i{position:absolute;top:2px;left:2px;width:24px;height:24px;background:#7dd3fc;border-radius:50%;transition:transform .18s ease}
+    .switch input{display:none}
+    .switch input:checked + i{transform:translateX(22px)}
+    .tog{display:flex;align-items:center;gap:8px;color:var(--muted);font-weight:600}
+
+    .btn{padding:8px 12px;border-radius:12px;border:1px solid var(--ring);background:var(--chip);color:var(--muted);font-weight:700;cursor:pointer}
+    .btn:hover{border-color:var(--focus);color:var(--text)}
+    .btn.small{padding:6px 10px;font-size:13px}
+
+    .layout{display:grid;gap:20px}
+    @media(min-width:1024px){.layout{grid-template-columns:420px 1fr}}
+    .card{background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--glass-border);border-radius:22px;padding:18px 18px 16px;box-shadow:0 20px 40px rgba(0,0,0,.35);animation:fadeInUp .28s ease both}
+
+    label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+    input[type="text"], input[type="range"], select{
+      width:100%;box-sizing:border-box;background:#0f1a33;color:var(--text);border:1px solid var(--ring);
+      border-radius:14px;padding:12px 14px;font-size:15px;transition:border .15s ease, box-shadow .15s ease
+    }
+    :root[data-theme="light"] input[type="text"],:root[data-theme="light"] select{background:#fff}
+    input:focus,select:focus{outline:2px solid var(--focus);outline-offset:1px}
+    .row{display:grid;gap:12px;margin:12px 0}
+    @media(min-width:560px){.row.cols-2{grid-template-columns:1fr 1fr}}
+    .group{display:flex;gap:8px;align-items:center}
+    .tag{padding:10px 12px;border:1px solid var(--ring);border-radius:12px;background:#0f1a33;color:var(--muted);font-weight:600;white-space:nowrap}
+    :root[data-theme="light"] .tag{background:#fff}
+
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{padding:9px 12px;border-radius:999px;background:var(--chip);border:1px solid var(--chip-border);cursor:pointer;user-select:none;font-weight:700;color:var(--muted);transition:transform .08s ease, border-color .12s ease, background .12s ease, color .12s ease}
+    .chip:hover{border-color:var(--focus);color:var(--text)}
+    .chip:active{transform:scale(.97)}
+    .chip.active{background:var(--chip-active);color:var(--chip-active-text);border-color:transparent}
+
+    .results{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .pill{background:var(--pill);border:1px solid var(--pill-border);border-radius:16px;padding:16px;animation:fadeIn .3s ease both}
+    .title{font-size:12px;color:var(--muted);letter-spacing:.2px}
+    .val{font-size:24px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .big{grid-column:1/-1;background:var(--pill-strong)}
+
+    .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .seg{display:inline-flex;background:#0f1a33;border:1px solid var(--ring);border-radius:12px;overflow:hidden}
+    :root[data-theme="light"] .seg{background:#fff}
+    .seg button{padding:8px 14px;border:0;background:transparent;color:var(--muted);cursor:pointer;font-weight:700}
+    .seg button.active{background:var(--focus);color:#062231}
+
+    .badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .badge{padding:6px 8px;border-radius:999px;background:var(--chip);border:1px solid var(--chip-border);font-size:12px;color:var(--muted);white-space:nowrap}
+    .fxbar{
+      display:flex;gap:10px;align-items:center;background:var(--pill);
+      border:1px solid var(--pill-border);padding:10px 12px;border-radius:12px;
+      animation:fadeIn .25s ease both;justify-content:space-between;flex-wrap:wrap
+    }
+    .fxbar .fxnum{max-width:180px}
+    @media(min-width:1024px){#report{position:sticky;top:24px}}
+
+    .footer{margin:30px 0 12px;text-align:center;color:var(--muted);font-size:12px}
+    .footer a{color:inherit;text-decoration:none}
+    .footer a:hover{text-decoration:underline}
+
+    /* ===================== */
+    /* ÖZEL SAĞ TIK MENÜSÜ   */
+    /* ===================== */
+    .ctxmenu{
+      position:fixed;z-index:9999;min-width:240px;max-width:280px;
+      background:var(--glass);backdrop-filter:blur(10px);
+      border:1px solid var(--glass-border);border-radius:14px;
+      box-shadow:0 20px 40px rgba(0,0,0,.4);display:none;overflow:hidden;
+    }
+    .ctxitem{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:12px;padding:10px 14px;cursor:pointer;color:var(--text);
+      border-bottom:1px solid rgba(255,255,255,.04);
+    }
+    .ctxitem:last-child{border-bottom:0}
+    .ctxitem:hover{background:var(--pill)}
+    .ctxhint{font-size:12px;color:var(--muted)}
+    .ctxfooter{padding:8px 12px;font-size:12px;color:var(--muted);text-align:center;background:var(--pill)}
+    .ctxfooter a{color:inherit;text-decoration:none}
+    .ctxfooter a:hover{text-decoration:underline}
+    /* Toast */
+    .toast{
+      position:fixed;z-index:10000;left:50%;bottom:28px;transform:translateX(-50%);
+      background:var(--glass);border:1px solid var(--glass-border);padding:8px 12px;
+      border-radius:12px;color:var(--text);display:none;box-shadow:0 10px 24px rgba(0,0,0,.35)
+    }
+
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @media (prefers-reduced-motion: reduce){ *{animation:none !important;transition:none !important} }
+  </style>
+</head>
+<body>
+  <div class="decor"></div>
+  <div class="wrap">
+    <div class="topbar">
+      <h1>Yüzde & KDV Hesaplama</h1>
+      <div style="display:flex;gap:12px;align-items:center;color:var(--muted)">
+        <div class="tog">
+          <span>Light</span>
+          <label class="switch" title="Açık/Koyu Tema">
+            <input id="themeSwitch" type="checkbox" />
+            <i></i>
+          </label>
+        </div>
+        <div class="tog">
+          <span>Ses</span>
+          <label class="switch" title="Sesli uyarı">
+            <input id="soundSwitch" type="checkbox" checked />
+            <i></i>
+          </label>
+        </div>
+        <button id="resetBtn" class="btn small" title="Tüm alanları ilk değerlere döndür">Sıfırla</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <!-- LEFT -->
+      <section class="card">
+        <h2 style="margin:0 0 10px;font-size:18px">Girdi Alanları</h2>
+
+        <div class="row cols-2">
+          <div>
+            <label>Ürün/Hizmet Tutarı</label>
+            <div class="group">
+              <span class="tag" id="ccy-tag">TRY</span>
+              <input id="price" type="text" inputmode="decimal" placeholder="0,00" value="0" />
+            </div>
+            <div class="group" style="margin-top:10px">
+              <label style="margin:0">KDV dâhil mi?</label>
+              <label class="switch" aria-label="KDV dahil">
+                <input id="includesVAT" type="checkbox" />
+                <i></i>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label>İndirim Oranı</label>
+            <div class="chips" id="discount-chips">
+              <span class="chip active" data-discount="0">%0</span>
+              <span class="chip" data-discount="5">%5</span>
+              <span class="chip" data-discount="10">%10</span>
+              <span class="chip" data-discount="15">%15</span>
+              <span class="chip" data-discount="20">%20</span>
+              <span class="chip" data-discount="25">%25</span>
+              <span class="chip" data-discount="30">%30</span>
+              <span class="chip" data-discount="40">%40</span>
+              <span class="chip" data-discount="50">%50</span>
+            </div>
+            <div class="group" style="margin-top:10px">
+              <input id="discount" type="text" inputmode="decimal" placeholder="Örn. 12,5" value="0" />
+              <input id="discountRange" type="range" min="0" max="100" step="0.5" value="0" />
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>KDV Oranı</label>
+            <div class="chips" id="vat-chips">
+              <span class="chip" data-vat="1">%1</span>
+              <span class="chip" data-vat="8">%8</span>
+              <span class="chip active" data-vat="20">%20</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Para Birimi</label>
+            <div class="chips" id="ccy-chips">
+              <span class="chip active" data-ccy="TRY">TRY</span>
+              <span class="chip" data-ccy="USD">USD</span>
+              <span class="chip" data-ccy="EUR">EUR</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="fx-row" class="fxbar" style="display:none;margin-top:10px">
+          <span id="rate-label">1 USD =</span>
+          <input id="rate" class="fxnum" type="text" inputmode="decimal" placeholder="Örn. 35,00" />
+          <span>TL</span>
+        </div>
+        <div id="fx-auto-row" class="fxbar" style="display:none;margin-top:10px">
+          <div class="tog" style="gap:10px">
+            <span>Otomatik kur (online)</span>
+            <label class="switch" title="İnternetten kur çek">
+              <input id="autoRateSwitch" type="checkbox" />
+              <i></i>
+            </label>
+          </div>
+          <div class="badges">
+            <button id="fx-refresh" class="btn small" style="cursor:pointer">Yenile</button>
+            <span id="fx-source" class="badge" title="exchangerate.host">XRH</span>
+            <span id="fx-updated" class="badge"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT -->
+      <section class="card" id="report">
+        <div class="bar">
+          <h2 style="margin:0;font-size:18px">Hesaplama Çıktıları</h2>
+          <div class="seg" role="tablist" aria-label="Görüntüleme modu">
+            <button id="tab-pb" class="active" role="tab" aria-selected="true">Seçilen PB</button>
+            <button id="tab-tl" role="tab" aria-selected="false">TL</button>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;color:var(--muted);font-size:13px">
+          <span>PB: <b id="ccy-label">TRY</b></span>
+          <span aria-hidden>•</span>
+          <span>KDV: <b id="vat-label">%20</b></span>
+        </div>
+
+        <div id="panel-pb" class="results" role="tabpanel">
+          <div class="pill"><div class="title">KDV Hariç Tutar</div><div class="val" id="r-net">—</div></div>
+          <div class="pill"><div class="title">İndirim Tutarı</div><div class="val" id="r-discount">—</div></div>
+          <div class="pill"><div class="title">İndirimli Fiyat (KDV Hariç)</div><div class="val" id="r-discounted">—</div></div>
+          <div class="pill"><div class="title">KDV Tutarı</div><div class="val" id="r-vat">—</div></div>
+          <div class="pill big"><div class="title">KDV Dahil Toplam</div><div class="val" id="r-total">—</div></div>
+        </div>
+
+        <div id="panel-tl" class="results" role="tabpanel" style="display:none">
+          <div class="pill"><div class="title">KDV Hariç (TL)</div><div class="val" id="r-net-tl">—</div></div>
+          <div class="pill"><div class="title">İndirim (TL)</div><div class="val" id="r-discount-tl">—</div></div>
+          <div class="pill"><div class="title">İndirimli Net (TL)</div><div class="val" id="r-discounted-tl">—</div></div>
+          <div class="pill"><div class="title">KDV (TL)</div><div class="val" id="r-vat-tl">—</div></div>
+          <div class="pill big"><div class="title">Genel Toplam (TL)</div><div class="val" id="r-total-tl">—</div></div>
+        </div>
+
+        <small id="tl-hint" style="display:none;color:var(--muted);margin-top:10px;display:block">TRY dışı birimlerde kur girerek TL değerlerini görebilirsiniz.</small>
+      </section>
+    </div>
+
+    <p class="footer">© <span id="y"></span> <a href="https://www.togan.tr" target="_blank" rel="noopener">Bugra Togan</a></p>
+  </div>
+
+  <!-- Özel Sağ Tık Menüsü -->
+  <div id="ctx" class="ctxmenu" role="menu" aria-hidden="true">
+    <div class="ctxitem" id="ctx-copy-net">
+      <span>KDV Hariç Tutar</span>
+      <span class="ctxhint">Kopyala</span>
+    </div>
+    <div class="ctxitem" id="ctx-copy-total">
+      <span>KDV Dahil Toplam</span>
+      <span class="ctxhint">Kopyala</span>
+    </div>
+    <div class="ctxitem" id="ctx-exit">
+      <span>Çıkış</span>
+      <span class="ctxhint">Alt+F4</span>
+    </div>
+    <div class="ctxfooter">© 2025 Bugra Togan</div>
+  </div>
+  <div id="toast" class="toast">Kopyalandı</div>
+
+  <script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const tlFmt = (n)=> new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(isFinite(n)?n:0);
+    const moneyFmt = (n, ccy)=>{ try{ return new Intl.NumberFormat('tr-TR',{style:'currency',currency:ccy}).format(isFinite(n)?n:0);}catch{ return String(n); } };
+    const round2 = (n)=> Math.round((Number(n)+Number.EPSILON)*100)/100;
+    const $ = (id)=> document.getElementById(id);
+    const shortDate = (d)=> (d||'').toString().slice(0,10);
+
+    const price = $('price'), discount = $('discount'), discountRange = $('discountRange'),
+          includesVAT = $('includesVAT'), themeSwitch = $('themeSwitch'),
+          soundSwitch = $('soundSwitch'), resetBtn = $('resetBtn');
+
+    let vatValue = 20, ccyValue = 'TRY', soundEnabled = true;
+
+    // Ses
+    let audioCtx = null;
+    function ensureAudio(){ if(!audioCtx){ const AC = window.AudioContext||window.webkitAudioContext; if(!AC) return; audioCtx = new AC(); } if(audioCtx && audioCtx.state==='suspended'){ audioCtx.resume(); } }
+    function blip(freq=880, dur=0.09, vol=0.03){ if(!soundEnabled) return; ensureAudio(); if(!audioCtx) return; const ctx=audioCtx; const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='sine'; o.frequency.value=freq; o.connect(g); g.connect(ctx.destination); const now=ctx.currentTime; g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(vol, now+0.01); g.gain.exponentialRampToValueAtTime(0.0001, now+dur); o.start(now); o.stop(now+dur+0.02); }
+
+    // Chips & çıktılar
+    const chipArea = (id)=> Array.from(document.querySelectorAll(`#${id} .chip`));
+    const discChips = chipArea('discount-chips'), vatChips = chipArea('vat-chips'), ccyChips = chipArea('ccy-chips');
+    const rNet=$('r-net'), rDisc=$('r-discount'), rDiscNet=$('r-discounted'), rVAT=$('r-vat'), rTotal=$('r-total');
+    const rNetTL=$('r-net-tl'), rDiscTL=$('r-discount-tl'), rDiscNetTL=$('r-discounted-tl'), rVATTL=$('r-vat-tl'), rTotalTL=$('r-total-tl');
+    const lblCCY=$('ccy-label'), lblVAT=$('vat-label'), ccyTag=$('ccy-tag');
+    const fxRow=$('fx-row'), fxAutoRow=$('fx-auto-row'), rateInput=$('rate'), rateLabel=$('rate-label'),
+          autoRateSwitch=$('autoRateSwitch'), fxRefresh=$('fx-refresh'), fxSource=$('fx-source'), fxUpdated=$('fx-updated');
+    const tabPB=$('tab-pb'), tabTL=$('tab-tl');
+    $('y').textContent = new Date().getFullYear();
+
+    function parseNum(v){
+      v = String(v ?? '').trim();
+      if(!v) return 0;
+      v = v.split(' ').join('');
+      v = Array.from(v).filter(ch => '0123456789.,-'.includes(ch)).join('');
+      const hasComma = v.includes(','), hasDot = v.includes('.');
+      if(hasComma && hasDot){
+        const lastComma = v.lastIndexOf(','), lastDot = v.lastIndexOf('.');
+        const decSep = lastComma > lastDot ? ',' : '.', thouSep = decSep === ',' ? '.' : ',';
+        v = v.split(thouSep).join(''); v = v.replace(decSep, '.');
+      } else if(hasComma){ v = v.split('.').join(''); v = v.replace(',', '.'); }
+      else { v = v.split(',').join(''); }
+      const n = parseFloat(v); return isFinite(n)? n : 0;
+    }
+
+    function compute({base, discountPct, vatPct, baseIncludesVAT}){
+      const rV = vatPct/100, rD = discountPct/100;
+      const net = baseIncludesVAT ? base/(1+rV) : base;
+      const discountAmount = net * rD;
+      const discountedNet = net - discountAmount;
+      const vatAmount = discountedNet * rV;
+      const totalIncVAT = discountedNet + vatAmount;
+      return { net: round2(net), discountAmount: round2(discountAmount), discountedNet: round2(discountedNet), vatAmount: round2(vatAmount), totalIncVAT: round2(totalIncVAT) }
+    }
+
+    function setActive(list, predicate){ list.forEach(el=> el.classList.toggle('active', predicate(el))); }
+
+    function toggleFX(){
+      const isTRY = ccyValue === 'TRY';
+      fxRow.style.display = isTRY ? 'none' : 'flex';
+      fxAutoRow.style.display = isTRY ? 'none' : 'flex';
+      $('tl-hint').style.display = isTRY ? 'none' : 'block';
+      rateLabel.textContent = `1 ${ccyValue} =`;
+    }
+
+    function showPanel(which){
+      const showTL = which === 'tl';
+      tabPB.classList.toggle('active', !showTL); tabPB.setAttribute('aria-selected', String(!showTL));
+      tabTL.classList.toggle('active', showTL);  tabTL.setAttribute('aria-selected', String(showTL));
+      const pb = $('panel-pb'), tl = $('panel-tl');
+      tl.style.display = showTL ? 'grid' : 'none';
+      pb.style.display = showTL ? 'none' : 'grid';
+    }
+
+    function recalc(){
+      const base = parseNum(price.value);
+      const d = parseNum(discount.value);
+      const v = vatValue;
+      const cur = ccyValue;
+      lblCCY.textContent = cur; lblVAT.textContent = `%${v}`; ccyTag.textContent = cur;
+
+      const c = compute({base, discountPct:d, vatPct:v, baseIncludesVAT: includesVAT.checked});
+      rNet.textContent = moneyFmt(c.net, cur);
+      rDisc.textContent = moneyFmt(c.discountAmount, cur);
+      rDiscNet.textContent = moneyFmt(c.discountedNet, cur);
+      rVAT.textContent = moneyFmt(c.vatAmount, cur);
+      rTotal.textContent = moneyFmt(c.totalIncVAT, cur);
+
+      if(cur === 'TRY'){
+        rNetTL.textContent = tlFmt(c.net);
+        rDiscTL.textContent = tlFmt(c.discountAmount);
+        rDiscNetTL.textContent = tlFmt(c.discountedNet);
+        rVATTL.textContent = tlFmt(c.vatAmount);
+        rTotalTL.textContent = tlFmt(c.totalIncVAT);
+      } else {
+        const k = parseNum(rateInput.value);
+        if(k>0){
+          rNetTL.textContent = tlFmt(c.net*k);
+          rDiscTL.textContent = tlFmt(c.discountAmount*k);
+          rDiscNetTL.textContent = tlFmt(c.discountedNet*k);
+          rVATTL.textContent = tlFmt(c.vatAmount*k);
+          rTotalTL.textContent = tlFmt(c.totalIncVAT*k);
+        } else {
+          [rNetTL,rDiscTL,rDiscNetTL,rVATTL,rTotalTL].forEach(n=>n.textContent='—');
+        }
+      }
+    }
+
+    themeSwitch.addEventListener('change', ()=>{ document.documentElement.setAttribute('data-theme', themeSwitch.checked ? 'light' : 'dark'); });
+    soundSwitch.addEventListener('change', ()=>{ soundEnabled = !!soundSwitch.checked; });
+
+    function resetAll(){
+      price.value = "0";
+      includesVAT.checked = false;
+      discount.value = "0"; discountRange.value = "0";
+      setActive(discChips, el=> parseInt(el.dataset.discount,10)===0);
+      vatValue = 20; setActive(vatChips, el=> parseInt(el.dataset.vat,10)===20);
+      ccyValue = 'TRY'; setActive(ccyChips, el=> el.dataset.ccy==='TRY');
+      rateInput.value = ""; autoRateSwitch.checked = false;
+      fxSource.textContent = 'XRH'; fxSource.title = 'exchangerate.host'; fxUpdated.textContent='Günc.: —';
+      toggleFX();
+      themeSwitch.checked = false; document.documentElement.setAttribute('data-theme','dark');
+      soundSwitch.checked = true; soundEnabled = true;
+      showPanel('pb'); recalc(); blip(660,0.08,0.02);
+    }
+    resetBtn.addEventListener('click', resetAll);
+
+    price.addEventListener('input', recalc);
+    discount.addEventListener('input', ()=>{ discountRange.value = String(parseNum(discount.value)); recalc(); });
+    discountRange.addEventListener('input', ()=>{ discount.value = discountRange.value; setActive(discChips, el=> parseNum(el.dataset.discount)===parseNum(discountRange.value)); recalc(); });
+    includesVAT.addEventListener('change', recalc);
+    rateInput.addEventListener('input', recalc);
+
+    discChips.forEach(el=> el.addEventListener('click', ()=>{ discount.value = el.dataset.discount; discountRange.value = el.dataset.discount; setActive(discChips, x=> x===el); recalc(); }));
+    vatChips.forEach(el=> el.addEventListener('click', ()=>{ vatValue = parseInt(el.dataset.vat,10); setActive(vatChips, x=> x===el); recalc(); }));
+    ccyChips.forEach(el=> el.addEventListener('click', ()=>{ ccyValue = el.dataset.ccy; setActive(ccyChips, x=> x===el); toggleFX(); if(autoRateSwitch.checked){ fetchRate(); } recalc(); }));
+
+    tabPB.addEventListener('click', ()=> showPanel('pb'));
+    tabTL.addEventListener('click', ()=> showPanel('tl'));
+
+    async function fetchRate(){
+      if(ccyValue==='TRY') return;
+      fxSource.textContent = 'XRH'; fxSource.title = 'exchangerate.host'; fxUpdated.textContent = 'Günc.: —';
+      try{
+        const url = `https://api.exchangerate.host/latest?base=${ccyValue}&symbols=TRY`;
+        const r = await fetch(url); const j = await r.json(); const rate = j?.rates?.TRY;
+        if(rate && isFinite(rate)){ rateInput.value = String(Number(rate).toFixed(4)); fxUpdated.textContent = `Günc.: ${shortDate(j.date||new Date())}`; recalc(); return; }
+        throw 0;
+      }catch{
+        try{
+          const r2 = await fetch(`https://api.frankfurter.app/latest?from=${ccyValue}&to=TRY`);
+          const j2 = await r2.json(); const rate2 = j2?.rates?.TRY;
+          if(rate2 && isFinite(rate2)){ rateInput.value = String(Number(rate2).toFixed(4)); fxSource.textContent='ECB'; fxSource.title='frankfurter.app (ECB)'; fxUpdated.textContent=`Günc.: ${shortDate(j2.date)}`; recalc(); return; }
+        }catch{}
+        fxUpdated.textContent='Günc.: —';
+      }
+    }
+    autoRateSwitch.addEventListener('change', ()=>{ if(autoRateSwitch.checked){ fetchRate(); } });
+    fxRefresh.addEventListener('click', ()=>{ fetchRate(); });
+
+    // Başlangıç
+    document.documentElement.setAttribute('data-theme','dark');
+    setActive(discChips, el=> parseInt(el.dataset.discount,10)===0);
+    setActive(vatChips, el=> parseInt(el.dataset.vat,10)===20);
+    setActive(ccyChips, el=> el.dataset.ccy==='TRY');
+    toggleFX(); showPanel('pb'); recalc();
+
+    /* ============================= */
+    /* ÖZEL SAĞ TIK MENÜ KULLANIMI  */
+    /* ============================= */
+    const ctx = $('ctx'), toast = $('toast');
+    function showToast(msg='Kopyalandı'){
+      toast.textContent = msg; toast.style.display='block';
+      setTimeout(()=> toast.style.display='none', 1100);
+    }
+    function showCtx(x,y){
+      ctx.style.display='block';
+      // Ekran dışına taşmayı önle
+      const r = ctx.getBoundingClientRect();
+      let left = x, top = y;
+      if(r.right > innerWidth) left = Math.max(8, innerWidth - r.width - 8);
+      if(r.bottom > innerHeight) top = Math.max(8, innerHeight - r.height - 8);
+      ctx.style.left = left+'px'; ctx.style.top = top+'px';
+    }
+    function hideCtx(){ ctx.style.display='none'; }
+    // Varsayılan sağ tık menüsünü devre dışı bırak
+    document.addEventListener('contextmenu', (e)=>{ e.preventDefault(); showCtx(e.clientX, e.clientY); });
+    // Dışarı tıklama / kaydırma / ESC
+    document.addEventListener('mousedown', (e)=>{ if(!ctx.contains(e.target)) hideCtx(); });
+    window.addEventListener('scroll', hideCtx, {passive:true});
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideCtx(); });
+
+    function currentText(pbId, tlId){
+      const tlShown = getComputedStyle($('panel-tl')).display !== 'none';
+      return (tlShown ? $(tlId) : $(pbId))?.textContent?.trim() || '';
+    }
+    $('ctx-copy-net').addEventListener('click', async ()=>{
+      const t = currentText('r-net','r-net-tl'); if(!t || t==='—') return;
+      try{ await navigator.clipboard.writeText(t); }catch{}
+      blip(920,0.08,0.025); showToast('KDV Hariç kopyalandı'); hideCtx();
+    });
+    $('ctx-copy-total').addEventListener('click', async ()=>{
+      const t = currentText('r-total','r-total-tl'); if(!t || t==='—') return;
+      try{ await navigator.clipboard.writeText(t); }catch{}
+      blip(920,0.08,0.025); showToast('KDV Dahil kopyalandı'); hideCtx();
+    });
+    $('ctx-exit').addEventListener('click', async ()=>{
+      hideCtx();
+      // Tauri varsa pencereyi kapat
+      try{
+        const w = window.__TAURI__?.window?.getCurrent?.();
+        if(w && typeof w.close === 'function'){ w.close(); return; }
+      }catch{}
+      try{ window.close(); }catch{}
+    });
+  });
+  </script>
+</body>
+</html>
