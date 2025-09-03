@@ -8,30 +8,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # Tanı koymaya yardımcı: yapıyı ve önemli dosyaları göster
       - name: Show tree
         run: |
-          echo "== ROOT =="
-          ls -la
-          echo "== capacitor.config.json =="
-          cat capacitor.config.json || true
-          echo "== www =="
-          ls -la www || true
+          echo "== ROOT ==" && ls -la
+          echo "== capacitor.config.json ==" && cat capacitor.config.json || true
+          echo "== www ==" && ls -la www || true
 
-      - name: Setup Node 18
+      - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Install deps
         run: |
           npm ci || npm i
           npm i @capacitor/core @capacitor/cli @capacitor/android@latest --save
 
-      # android klasörü yoksa CI içinde oluştur (etkileşimsiz)
       - name: Ensure Android platform
         run: |
           if [ ! -d android ]; then
