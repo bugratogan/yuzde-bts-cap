@@ -1,0 +1,6 @@
+﻿.idea/
+.DS_Store
+node_modules/
+android/.gradle/
+android/.idea/
+android/app/build/
