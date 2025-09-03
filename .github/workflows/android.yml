@@ -1,4 +1,4 @@
-name: Build Android APK (Capacitor)
+name: Build Android APK (Capacitor - fresh android)
 
 on:
   workflow_dispatch: {}
@@ -10,28 +10,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Show tree
-        run: |
-          echo "== ROOT ==" && ls -la
-          echo "== capacitor.config.json ==" && cat capacitor.config.json || true
-          echo "== www ==" && ls -la www || true
-
       - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install deps
+      - name: Install Capacitor deps
         run: |
           npm ci || npm i
           npm i @capacitor/core @capacitor/cli @capacitor/android@latest --save
 
-      - name: Ensure Android platform
+      # Eski android klasörünü at ve güncel şablonla yeniden oluştur
+      - name: Recreate Android platform (fresh)
         run: |
-          if [ ! -d android ]; then
-            npx cap add android --skip-npm
-          fi
-          ls -la android
+          rm -rf android
+          npx cap add android --skip-npm
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -45,8 +38,9 @@ jobs:
       - name: Point SDK to project
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
 
-      - name: Sync Capacitor (after SDK/Java)
-        run: npx cap sync android --no-interactive || npx cap copy android
+      # www/ içeriğini yeni android projesine kopyala
+      - name: Sync web to Android
+        run: npx cap copy android --no-interactive
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
